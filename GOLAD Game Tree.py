@@ -409,7 +409,9 @@ elif gameTree_two_by_two.losing is "Red":
     print("Blue has the winning strategy")
 else:
     print("Something went wrong: no winner?")
-    
+
+saveJSON(gameTree_two_by_two, "gameTree_two_by_two.json")
+
 gameTree_three_by_three = depthFirstGameTree(sampleGame_three_by_three)
 
 print("For 3x3...")
