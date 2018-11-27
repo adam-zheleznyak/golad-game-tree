@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>GOLAD Game Trees</title>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <style>
+            * {
+                padding: 1px;
+            }
+            body {
+                background-color: black;
+            }
+            .E {
+                width: 30px;
+                height: 30px;
+                padding: 1px;
+                background-color: #323232;
+            }
+            .R {
+                width: 30px;
+                height: 30px;
+                padding: 1px;
+                background-color: #C6092E;
+            }
+            .B {
+                width: 30px;
+                height: 30px;
+                padding: 1px;
+                background-color: #0C54C5;
+            }
+            #parent table tbody tr td div{
+                width: 45px;
+                height: 45px;
+                padding: 4px;
+            }
+            h1 {
+                color: white;
+            }
+            h3 {
+                color: white;
+            }
+            button {
+                padding: 10px;
+                font-size: 18px;
+                background-color: #AAAAAA;
+            }
+            p {
+                color: white;
+                margin-top: 5px;
+                padding-bottom: 10px;
+            }
+            b {
+                color: white;
+                font-size: 20px;
+            }
+            #parent {
+                background: #222244;
+                padding: 5px;
+                margin-bottom: 15px;
+                border-radius: 6px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Game of Life and Death Game Trees</h1>
+        <h3>Made by Adam Zheleznyak</h3>
+        <p></p>
+        <p>Click the buttons below to switch game trees.</p>
+        <button onclick="load2()" id="load2">Complete Game Tree for a Sample 2x2 board (Depth First)</button>
+        <button onclick="load3()" id="load3">Complete Game Tree for a Sample 3x3 board (Depth First)</button>
+        <button onclick="load4()" id="load4">Partial Game Tree for a Sample 4x4 board (Breadth First)</button>
+        <button onclick="load5()" id="load5">Partial Game Tree for a Sample 5x5 board (Breadth First) - <em>takes a bit of time to load</em></button>
+        <p>Cells are labelled starting from 0 in the upper left corner:</p>
+        <img src="Cell Labeling.png" width="120" height="120">
+        <p></p>
+        <p></p>
+        <p>The children represent all possible moves <em>after</em> the game iterates.</p>
+        <p>For the partial game trees, many nodes will not have any children generated because the winner was determined before it was needed.</p>
+        <div id="boards">
+            <div id="parent"><table></table></div>
+            <div id="children"><table></table></div>
+        </div>
+    </body>
+    <script>
+    $(document).ready(function() {
+        load2();
+    });
+    
+    var gameTree;
+    
+    var parentTable;
+    
+    var children;
+    
+    function loadTree(fileURL){
+        var reader = new FileReader();
+        fetch(fileURL).then( r => r.text() ).then(t => gameTree = JSON.parse(t)).then(root => showTree(root));
+    }
+    
+    var color;
+    
+    function load2(){
+        loadTree("gameTree_two_by_two.json");
+        $("#load2").attr("style", "background-color: #557777")
+        $("#load3").attr("style", "background-color: #AAAAAA")
+        $("#load4").attr("style", "background-color: #AAAAAA")
+        $("#load5").attr("style", "background-color: #AAAAAA")
+        color = "background-color: #113333"
+    }
+    
+    function load3(){
+        loadTree("gameTree_three_by_three.json");
+        $("#load3").attr("style", "background-color: #88AA44")
+        $("#load2").attr("style", "background-color: #AAAAAA")
+        $("#load4").attr("style", "background-color: #AAAAAA")
+        $("#load5").attr("style", "background-color: #AAAAAA")
+        color = "background-color: #2F3F11"
+    }
+    
+    function load4(){
+        loadTree("gameTree_four_by_four.json");
+        $("#load4").attr("style", "background-color: #774477")
+        $("#load2").attr("style", "background-color: #AAAAAA")
+        $("#load3").attr("style", "background-color: #AAAAAA")
+        $("#load5").attr("style", "background-color: #AAAAAA")
+        color = "background-color: #2F112F"
+    }
+    
+    function load5(){
+        loadTree("gameTree_five_by_five.json");
+        $("#load5").attr("style", "background-color: #6666BB")
+        $("#load2").attr("style", "background-color: #AAAAAA")
+        $("#load3").attr("style", "background-color: #AAAAAA")
+        $("#load4").attr("style", "background-color: #AAAAAA")
+        color = "background-color: #222244"
+    }
+    
+    function showTree(parent){
+        $("#boards").fadeOut(100);
+        $("#parent").empty();
+        $("#children").empty();
+        if (parent.parent){
+            var name = document.createTextNode("Parent - click board to go back up a level");
+        } else {
+            var name = document.createTextNode("Parent");
+        }
+        var title = document.createElement("b");
+        title.append(name);
+        $("#parent").append(title);
+        parentTable = document.createElement("table");
+        parentTable.append(document.createElement("tbody"));
+        for (j=0; j < parent.board.length; j++) {
+            row = document.createElement("tr");
+            for (i=0; i < parent.board[j].length; i++) {
+                cell = document.createElement("td");
+                var d;
+                if (parent.board[j][i] == " ") {
+                    d = "E";
+                } else {
+                    d = parent.board[j][i];
+                }
+                div = document.createElement("div");
+                div.className = d;
+                cell.appendChild(div);
+                row.appendChild(cell)
+            }
+            parentTable.firstChild.append(row)
+        }
+        var turn = "";
+        if (parent.turn == 0){
+            turn = "Red"
+        } else {
+            turn = "Blue"
+        }
+        var info = document.createTextNode("It is " + turn + "'s turn. " + parent.losing + " is in the losing position.");
+        var text = document.createElement("p");
+        text.append(info);
+        if (parent.parent) {
+            $(parentTable).on('click', function(e) {showTree(parent.parent)});
+        }
+        $("#parent").append(parentTable);
+        $("#parent").append(text);
+        var name = document.createTextNode("Children - click on a board to look at its children (if they exist)");
+        var title = document.createElement("b");
+        title.append(name);
+        $("#children").append(title);
+        for (n=0; n < parent.children.length; n++) {
+            if (!parent.children[n].parent){
+                parent.children[n].parent = parent;
+            }
+            childTable = document.createElement("table");
+            childTable.id = n;
+            childTable.appendChild(document.createElement("tbody"));
+            for (j=0; j < parent.children[n].board.length; j++) {
+                row = document.createElement("tr");
+                for (i=0; i < parent.children[n].board[j].length; i++) {
+                    cell = document.createElement("td");
+                    var d;
+                    if (parent.children[n].board[j][i] == " ") {
+                        d = "E";
+                    } else {
+                        d = parent.children[n].board[j][i];
+                    }
+                    div = document.createElement("div");
+                    div.className = d;
+                    cell.appendChild(div);
+                    row.appendChild(cell);
+                }
+                childTable.firstChild.appendChild(row);
+            }
+            var message = "";
+            if (parent.children[n].move[0] == "D") {
+                message = turn + " destroyed a cell at " + parent.children[n].move.substr(2,3);
+            } else if (parent.children[n].move[0] == "C") {
+                message = turn + " created a cell at " + parent.children[n].move.substr(2,3) + " by sacrificing cells at " + parent.children[n].move.substr(6,3) + " and " + parent.children[n].move.substr(10,3);
+            }
+            if (parent.children[n].children.length > 0) {
+                $(childTable).on('click', function(e) {showTree(parent.children[e.currentTarget.id])});
+                if (parent.children[n].losing) {
+                        message += ". Places " + parent.children[n].losing + " into a losing position."
+                }
+            } else if (parent.children[n].loser) {
+                message += ". " + parent.children[n].loser + " lost because they " + parent.children[n].lossReason + "."
+            } else {
+                message += ". No children were generated for this turn."
+            }
+            var info = document.createTextNode(message);
+            var text = document.createElement("p");
+            text.append(info);
+            $("#children").append(childTable);
+            $("#children").append(text);
+        }
+        $("#parent").attr("style", color)
+        $("#boards").fadeIn(100);
+    }
+    </script>
+</html>
