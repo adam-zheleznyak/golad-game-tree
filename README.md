@@ -3,4 +3,4 @@ A python script to generate game trees for the Game of Life and Death and a webs
 
 The python script outputs the game trees as json files that the website can render.
 
-To run the server: `node server.js`
+To run the server on the command line: `node server.js`
