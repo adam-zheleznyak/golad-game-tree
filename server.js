@@ -13,6 +13,7 @@ var unzipped = false;
 
 if (!unzipped) {
 	fs.createReadStream('zip/gameTrees.zip').pipe(unzip.Extract({ path: 'public' }));
+	unzipped = true;
 }
 
 app.get('/', function(req,res) {
